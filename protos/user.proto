@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package user;
+
+message UserToken {
+    string token = 1;
+}
+
+message RegisterRequest {
+    string email = 1;
+    string password = 2;
+    string password_confirmation = 3;
+}
+
+service User {
+    rpc Register(RegisterRequest) returns (UserToken) {};
+}
