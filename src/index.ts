@@ -4,11 +4,6 @@ import { UserServer } from "./services/user_server";
 import connect from "./connect";
 import * as dotenv from "dotenv";
 
-//
-import isStrongPassword from "validator/lib/isStrongPassword";
-console.log(isStrongPassword("inDdasdpdas@h213;"));
-
-//
 dotenv.config();
 
 const server = new Server();
