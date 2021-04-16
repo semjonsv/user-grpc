@@ -9,7 +9,6 @@ message UserToken {
 message RegisterRequest {
     string email = 1;
     string password = 2;
-    string password_confirmation = 3;
 }
 
 service User {
