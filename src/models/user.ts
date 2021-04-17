@@ -15,6 +15,7 @@ export interface IUser extends Document {
   }
 
   encryptPassword: (password: string) => string;
+  validateLogin: (email: string, password: string) => Promise<string>;
 }
 
 const UserSchema: Schema = new Schema({
@@ -24,7 +25,7 @@ const UserSchema: Schema = new Schema({
     unique: true,
     validate: {
       validator: (input: string): boolean => isEmail(input),
-      message: () => "Email is not valid.",
+      message: (): string => "Email is not valid.",
     },
   },
   password: {
@@ -32,7 +33,7 @@ const UserSchema: Schema = new Schema({
     required: true,
     validate: {
       validator: (input: string): boolean => isStrongPassword(input),
-      message: () => "Password is not strong enough.",
+      message: (): string => "Password is not strong enough.",
     },
   },
   createdAt: { type: Date, required: true },
@@ -45,9 +46,29 @@ const UserSchema: Schema = new Schema({
 
 UserSchema.methods = {
   encryptPassword: (password: string): string => {
-    const salt = bcrypt.genSaltSync(10);
+    const salt: string = bcrypt.genSaltSync(10);
 
     return bcrypt.hashSync(password, salt);
+  },
+  validateLogin: async (email: string, password: string): Promise<string> => {
+    if (!isEmail(email)) {
+      throw new Error("Invalid email.");
+    }
+
+    const User = mongoose.model<IUser>("User");
+    const user = await User.findOne({ email: email });
+
+    if (user == null) {
+      throw new Error("User does not exist.");
+    }
+
+    if (!bcrypt.compareSync(password, user.password)) {
+      throw new Error("Incorrect password.");
+    }
+
+    await user.save();
+
+    return user.session.token;
   },
 };
 

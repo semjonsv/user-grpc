@@ -6,11 +6,12 @@ message UserToken {
     string token = 1;
 }
 
-message RegisterRequest {
+message UserRequest {
     string email = 1;
     string password = 2;
 }
 
 service User {
-    rpc Register(RegisterRequest) returns (UserToken) {};
+    rpc Register(UserRequest) returns (UserToken) {};
+    rpc Login(UserRequest) returns (UserToken) {};
 }
