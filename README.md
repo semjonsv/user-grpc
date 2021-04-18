@@ -5,6 +5,8 @@
 ````
 npm run protoc
 ````
+> Files will be stored in ./pb directory
+
 \
 :dizzy: Generate javascript from typescipt:
 ````
