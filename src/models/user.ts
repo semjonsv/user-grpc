@@ -16,6 +16,7 @@ export interface IUser extends Document {
 
   encryptPassword: (password: string) => string;
   validateLogin: (email: string, password: string) => Promise<string>;
+  authenticated: (token: string) => Promise<boolean>;
 }
 
 const UserSchema: Schema = new Schema({
@@ -58,7 +59,7 @@ UserSchema.methods = {
     const User = mongoose.model<IUser>("User");
     const user = await User.findOne({ email: email });
 
-    if (user == null) {
+    if (user === null) {
       throw new Error("User does not exist.");
     }
 
@@ -69,6 +70,17 @@ UserSchema.methods = {
     await user.save();
 
     return user.session.token;
+  },
+  authenticated: async (token: string): Promise<boolean> => {
+    const User = mongoose.model<IUser>("User");
+    const user = await User.findOne({ "session.token": token });
+    const date = new Date();
+
+    if (user === null || user.session.expires < date) {
+      return false;
+    }
+
+    return true;
   },
 };
 

@@ -11,7 +11,12 @@ message UserRequest {
     string password = 2;
 }
 
+message Authenticated {
+    bool isAuth = 1;
+}
+
 service User {
     rpc Register(UserRequest) returns (UserToken) {};
     rpc Login(UserRequest) returns (UserToken) {};
+    rpc Auth(UserToken) returns (Authenticated) {};
 }

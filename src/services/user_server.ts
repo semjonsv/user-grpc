@@ -1,6 +1,6 @@
 import { UntypedHandleCall, handleUnaryCall, ServiceError, status } from "@grpc/grpc-js";
 import { IUserServer } from "../../pb/user_grpc_pb";
-import { UserToken, UserRequest } from "../../pb/user_pb";
+import { UserToken, UserRequest, Authenticated } from "../../pb/user_pb";
 
 import User from "../models/user";
 
@@ -55,5 +55,24 @@ export class UserServer implements IUserServer {
             };
             return callback(error, null);
         }
-    }
+    };
+
+    public auth: handleUnaryCall<UserToken, Authenticated> = async (call, callback) => {
+        const token: string = call.request.getToken();
+
+        try {
+            const isAuth = await new User().authenticated(token);
+
+            const res: Authenticated = new Authenticated();
+            res.setIsauth(isAuth);
+
+            return callback(null, res);
+        } catch (err) {
+            const error: Partial<ServiceError> = {
+                code: status.INVALID_ARGUMENT,
+                message: err.message,
+            };
+            return callback(error, null);
+        }
+    };
 }
