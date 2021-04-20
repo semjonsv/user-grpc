@@ -17,6 +17,7 @@ export interface IUser extends Document {
   encryptPassword: (password: string) => string;
   validateLogin: (email: string, password: string) => Promise<string>;
   authenticated: (token: string) => Promise<boolean>;
+  getByToken: (token: string) => Promise<IUser>;
 }
 
 const UserSchema: Schema = new Schema({
@@ -51,6 +52,7 @@ UserSchema.methods = {
 
     return bcrypt.hashSync(password, salt);
   },
+
   validateLogin: async (email: string, password: string): Promise<string> => {
     if (!isEmail(email)) {
       throw new Error("Invalid email.");
@@ -71,6 +73,7 @@ UserSchema.methods = {
 
     return user.session.token;
   },
+
   authenticated: async (token: string): Promise<boolean> => {
     const User = mongoose.model<IUser>("User");
     const user = await User.findOne({ "session.token": token });
@@ -81,6 +84,17 @@ UserSchema.methods = {
     }
 
     return true;
+  },
+
+  getByToken: async (token: string): Promise<IUser> => {
+    const User = mongoose.model<IUser>("User");
+    const user = await User.findOne({ "session.token": token });
+
+    if (user === null) {
+      throw new Error("User not found.");
+    }
+
+    return user;
   },
 };
 

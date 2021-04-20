@@ -15,8 +15,21 @@ message Authenticated {
     bool isAuth = 1;
 }
 
+message Session {
+    string token = 1;
+    string expires = 2;
+};
+
+message UserData {
+    string email = 1;
+    string createdAt = 2;
+    string updatedAt = 3;
+    Session session = 4;
+}
+
 service User {
     rpc Register(UserRequest) returns (UserToken) {};
     rpc Login(UserRequest) returns (UserToken) {};
     rpc Auth(UserToken) returns (Authenticated) {};
+    rpc GetByToken(UserToken) returns (UserData) {};
 }
