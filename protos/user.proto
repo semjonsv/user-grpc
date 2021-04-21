@@ -32,4 +32,5 @@ service User {
     rpc Login(UserRequest) returns (UserToken) {};
     rpc Auth(UserToken) returns (Authenticated) {};
     rpc GetByToken(UserToken) returns (UserData) {};
+    rpc Logout(UserToken) returns (Authenticated) {};
 }

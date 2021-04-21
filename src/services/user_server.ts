@@ -2,7 +2,7 @@ import { UntypedHandleCall, handleUnaryCall, ServiceError, status } from "@grpc/
 import { IUserServer } from "../../pb/user_grpc_pb";
 import { UserToken, UserRequest, Authenticated, UserData, Session } from "../../pb/user_pb";
 
-import User from "../models/user";
+import User, { Session as UserSession } from "../models/user";
 
 export class UserServer implements IUserServer {
     // eslint-disable-next-line no-undef
@@ -11,11 +11,13 @@ export class UserServer implements IUserServer {
     public register: handleUnaryCall<UserRequest, UserToken> = async (call, callback) => {
         const email: string = call.request.getEmail();
         const password: string = call.request.getPassword();
+        const session: UserSession = new User().generateSession();
 
         const user = new User({
             email: email,
             password: password,
             createdAt: Date.now(),
+            session: session,
         });
 
         try {
@@ -92,6 +94,27 @@ export class UserServer implements IUserServer {
             session.setExpires(user.session.expires.toISOString());
 
             res.setSession(session);
+
+            return callback(null, res);
+        } catch (err) {
+            const error: Partial<ServiceError> = {
+                code: status.INVALID_ARGUMENT,
+                message: err.message,
+            };
+            return callback(error, null);
+        }
+    };
+
+    public logout: handleUnaryCall<UserToken, Authenticated> = async (call, callback) => {
+        const token: string = call.request.getToken();
+
+        try {
+            const user = await new User().getByToken(token);
+            user.session.expires = new Date();
+            await user.save();
+
+            const res: Authenticated = new Authenticated();
+            res.setIsauth(false);
 
             return callback(null, res);
         } catch (err) {

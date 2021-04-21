@@ -4,20 +4,23 @@ import crypto from "crypto";
 import isEmail from "validator/lib/isEmail";
 import isStrongPassword from "validator/lib/isStrongPassword";
 
+export type Session = {
+  token: string;
+  expires: Date;
+}
+
 export interface IUser extends Document {
   email: string;
   password: string;
   createdAt: Date;
   updatedAt: Date;
-  session: {
-    token: string;
-    expires: Date;
-  }
+  session: Session;
 
   encryptPassword: (password: string) => string;
   validateLogin: (email: string, password: string) => Promise<string>;
   authenticated: (token: string) => Promise<boolean>;
   getByToken: (token: string) => Promise<IUser>;
+  generateSession: () => Session;
 }
 
 const UserSchema: Schema = new Schema({
@@ -53,6 +56,13 @@ UserSchema.methods = {
     return bcrypt.hashSync(password, salt);
   },
 
+  generateSession: (): Session => {
+    return {
+      token: crypto.randomBytes(32).toString("hex"),
+      expires: new Date(Date.now() + 86400000),
+    };
+  },
+
   validateLogin: async (email: string, password: string): Promise<string> => {
     if (!isEmail(email)) {
       throw new Error("Invalid email.");
@@ -69,6 +79,7 @@ UserSchema.methods = {
       throw new Error("Incorrect password.");
     }
 
+    user.session = new User().generateSession();
     await user.save();
 
     return user.session.token;
@@ -99,9 +110,7 @@ UserSchema.methods = {
 };
 
 UserSchema.pre<IUser>("save", function (next) {
-  this.session.token = crypto.randomBytes(32).toString("hex");
   this.updatedAt = new Date();
-  this.session.expires = new Date(Date.now() + 86400000);
   next();
 });
 
