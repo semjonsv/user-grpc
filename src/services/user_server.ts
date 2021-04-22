@@ -59,6 +59,7 @@ export class UserServer implements IUserServer {
         }
     };
 
+    // Check if user has an active session
     public auth: handleUnaryCall<UserToken, Authenticated> = async (call, callback) => {
         const token: string = call.request.getToken();
 
@@ -126,6 +127,7 @@ export class UserServer implements IUserServer {
         }
     };
 
+    // Extend user session by one day
     public check: handleUnaryCall<UserToken, Session> = async (call, callback) => {
         const token: string = call.request.getToken();
 
