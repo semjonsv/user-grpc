@@ -125,4 +125,27 @@ export class UserServer implements IUserServer {
             return callback(error, null);
         }
     };
+
+    public check: handleUnaryCall<UserToken, Session> = async (call, callback) => {
+        const token: string = call.request.getToken();
+
+        try {
+            const user = await new User().getByToken(token);
+            user.session.expires = new Date(Date.now() + 86400000);
+
+            await user.save();
+
+            const res: Session = new Session();
+            res.setToken(user.session.token);
+            res.setExpires(user.session.expires.toISOString());
+
+            return callback(null, res);
+        } catch (err) {
+            const error: Partial<ServiceError> = {
+                code: status.INVALID_ARGUMENT,
+                message: err.message,
+            };
+            return callback(error, null);
+        }
+    };
 }
